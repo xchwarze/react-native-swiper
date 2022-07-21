@@ -105,6 +105,7 @@ export default class extends Component {
     horizontal: PropTypes.bool,
     children: PropTypes.node.isRequired,
     containerStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.number]),
+    slideStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.number]),
     style: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.number,
@@ -283,8 +284,12 @@ export default class extends Component {
       initState.height = height
     }
 
+    let offsetIndex = props.index
+    if (props.loop) {
+      offsetIndex += 1
+    }
     initState.offset[initState.dir] =
-      initState.dir === 'y' ? initState.height * props.index : initState.width * props.index
+      initState.dir === 'y' ? initState.height * offsetIndex : initState.width * offsetIndex
 
     this.internals = {
       ...this.internals,
@@ -321,10 +326,10 @@ export default class extends Component {
     // related to https://github.com/leecade/react-native-swiper/issues/570
     // contentOffset is not working in react 0.48.x so we need to use scrollTo
     // to emulate offset.
-    if(this.state.total > 1) {
-      this.scrollView.scrollTo({ ...offset, animated: false })
+    if (this.state.total > 1) {
+      this.scrollView?.scrollTo({ ...offset, animated: false })
     }
-	
+
     if (this.initialRender) {
       this.initialRender = false
     }
@@ -333,7 +338,7 @@ export default class extends Component {
   }
 
   loopJump = () => {
-    if (!this.state.loopJump) return
+    if (!this.state.loopJump || !this.scrollView) return
     const i = this.state.index + (this.props.loop ? 1 : 0)
     const scrollView = this.scrollView
     this.loopJumpTimer = setTimeout(
@@ -488,6 +493,14 @@ export default class extends Component {
         index = 0
         offset[dir] = step
         loopJump = true
+      }
+    } else {
+      // Note: this is a hack to solve the overflow or underflow of index
+      // when user navigates to quickly
+      if (index <= -1) {
+        index = 0
+      } else if (index >= state.total) {
+        index = state.total - 1
       }
     }
 
@@ -794,6 +807,7 @@ export default class extends Component {
     const { index, total, width, height, children } = this.state
     const {
       containerStyle,
+      slideStyle,
       loop,
       loadMinimal,
       loadMinimalSize,
@@ -807,7 +821,7 @@ export default class extends Component {
     const loopVal = loop ? 1 : 0
     let pages = []
 
-    const pageStyle = [{ width: width, height: height }, styles.slide]
+    const pageStyle = [{ width: width, height: height }, styles.slide, slideStyle]
     const pageStyleLoading = {
       width,
       height,

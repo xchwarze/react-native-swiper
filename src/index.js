@@ -326,8 +326,8 @@ export default class extends Component {
     // related to https://github.com/leecade/react-native-swiper/issues/570
     // contentOffset is not working in react 0.48.x so we need to use scrollTo
     // to emulate offset.
-    if(this.state.total > 1) {
-      this.scrollView.scrollTo({ ...offset, animated: false })
+    if (this.state.total > 1) {
+      this.scrollView?.scrollTo({ ...offset, animated: false })
     }
 
     if (this.initialRender) {
@@ -338,7 +338,7 @@ export default class extends Component {
   }
 
   loopJump = () => {
-    if (!this.state.loopJump) return
+    if (!this.state.loopJump || !this.scrollView) return
     const i = this.state.index + (this.props.loop ? 1 : 0)
     const scrollView = this.scrollView
     this.loopJumpTimer = setTimeout(
